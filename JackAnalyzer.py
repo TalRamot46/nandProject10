@@ -37,13 +37,9 @@ def create_token_file(
     tokenizer = JackTokenizer(input_file)
     while tokenizer.has_more_tokens():
         tokenElement = ET.SubElement(root, tokenizer.token_type_translated())
-        tokenElement.text = " " + str(tokenizer.token_val()) + " "
+        tokenElement.text = " " + str(tokenizer.current_token_val()) + " "
         tokenizer.advance()
-    xml_tree = ET.ElementTree(root)
     try:
-        # Use ET.indent for pretty printing if Python 3.9+
-        if hasattr(ET, 'indent'):
-            ET.indent(xml_tree, space="", level=0)
         xml_bytes = ET.tostring(root, encoding="utf-8", xml_declaration=False)
         xml_string = xml_bytes.decode("utf-8")
         output_file.write(xml_string)

@@ -108,9 +108,9 @@ class JackTokenizer:
         # A good place to start is to read all the lines of the input:
         input_lines = input_stream.read().splitlines()
         self.token_list = self.get_words_from_code_script_filtered(input_lines)
-        self.current_token_index: int = 0
+        self._current_token_index: int = 0
         if self.token_list:
-            self.current_token: str = self.token_list[self.current_token_index]
+            self._current_token: str = self.token_list[self._current_token_index]
 
     def get_cleaned_code_string(self, input_lines):
         """
@@ -228,16 +228,16 @@ class JackTokenizer:
         Returns:
             bool: True if there are more tokens, False otherwise.
         """
-        return self.current_token_index < len(self.token_list)
+        return self._current_token_index < len(self.token_list)
 
     def advance(self) -> None:
         """Gets the next token from the input and makes it the current token. 
         This method should be called if has_more_tokens() is true. 
         Initially there is no current token.
         """
-        self.current_token_index += 1
+        self._current_token_index += 1
         if self.has_more_tokens():
-            self.current_token = self.token_list[self.current_token_index]
+            self._current_token = self.token_list[self._current_token_index]
 
     def token_type(self) -> str:
         """
@@ -248,20 +248,20 @@ class JackTokenizer:
         keyword_list = ["CLASS", "METHOD", "FUNCTION", "CONSTRUCTOR", "INT", 
             "BOOLEAN", "CHAR", "VOID", "VAR", "STATIC", "FIELD", "LET", "DO", 
             "IF", "ELSE", "WHILE", "RETURN", "TRUE", "FALSE", "NULL", "THIS"]
-        if self.current_token.upper() in keyword_list:
+        if self._current_token.upper() in keyword_list:
             return KEYWORD
         
         symbol_list = ['{', '}', '(', ')', '[', ']', '.', ',', ';', '+', '-', '*', '/', '&', '|', '<', '>', '=', '~', '^', '#']
-        if self.current_token in symbol_list:
+        if self._current_token in symbol_list:
             return SYMBOL
         
-        if self.is_valid_identifier(self.current_token):
+        if self.is_valid_identifier(self._current_token):
             return IDENTIFIER
         
-        if self.is_valid_integer(self.current_token):
+        if self.is_valid_integer(self._current_token):
             return INT_CONST
         
-        if self.current_token.startswith('\"') and self.current_token.endswith('\"'):
+        if self._current_token.startswith('\"') and self._current_token.endswith('\"'):
             return STRING_CONST
         
     def token_type_translated(self) -> str:
@@ -280,9 +280,10 @@ class JackTokenizer:
         }
         return translation_dict[self.token_type()]
     
-    def token_val(self) -> str:
+    def current_token_val(self) -> str:
         """Returns the token after its type had been determined,
-        used primarily for deleting the double-quotes from stringConstants.
+        used primarily for deleting the double-quotes from stringConstants
+        and handling the symbols <,> and &.
 
         Returns:
             str: The current token.
@@ -309,7 +310,7 @@ class JackTokenizer:
             "BOOLEAN", "CHAR", "VOID", "VAR", "STATIC", "FIELD", "LET", "DO", 
             "IF", "ELSE", "WHILE", "RETURN", "TRUE", "FALSE", "NULL", "THIS"
         """
-        return self.current_token.lower()
+        return self._current_token.lower()
 
     def symbol(self) -> str:
         """
@@ -320,7 +321,10 @@ class JackTokenizer:
             symbol: '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' | '+' | 
               '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=' | '~' | '^' | '#'
         """
-        return self.current_token
+        if self._current_token == '<': return '&lt'
+        if self._current_token == '>': return '&gt'
+        if self._current_token == '&': return '&amp'
+        return self._current_token
 
     def identifier(self) -> str:
         """
@@ -332,7 +336,7 @@ class JackTokenizer:
                   starting with a digit. You can assume keywords cannot be
                   identifiers, so 'self' cannot be an identifier, etc'.
         """
-        return self.current_token
+        return self._current_token
     
     def is_valid_identifier(self, s: str) -> bool:
         """
@@ -371,7 +375,7 @@ class JackTokenizer:
             Recall that integerConstant was defined in the grammar like so:
             integerConstant: A decimal number in the range 0-32767.
         """
-        return int(self.current_token)
+        return int(self._current_token)
     
     def is_valid_integer(self, s: str) -> bool:
         """
@@ -406,4 +410,4 @@ class JackTokenizer:
             StringConstant: '"' A sequence of Unicode characters not including 
                       double quote or newline '"'
         """
-        return self.current_token[1:-1]
+        return self._current_token[1:-1]
