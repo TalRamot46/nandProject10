@@ -38,7 +38,7 @@ class Compilationengine:
             if elem.text != None and str(elem.text).strip() != None:
                 elem.text = f" {str(elem.text)} "
             elif len(elem) == 0:
-                elem.text = "\n" + ("  " * level)  # Fix: match opening tag level
+                elem.text = "\n"  + ("  " * level) # Fix: match opening tag level
             for child in elem:
                 add_spaces_to_texts(child, level + 1)
 
@@ -199,7 +199,7 @@ class Compilationengine:
 
         # Empty parameter list
         if self.tknzr._current_token == ')':
-            # 👇 Force newline text so minidom adds line breaks
+            # Force newline text so minidom adds line breaks
             self.current_xml_parent = prev_parent
             return
 

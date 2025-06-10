@@ -11,7 +11,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "args": [
-                ".\\ArrayTest\\Main.jack"
+                 "p10\\test6\\T.jack"
             ]
         }
     ]

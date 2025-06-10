@@ -25,11 +25,11 @@ class JackTokenizer:
     tokens may be separated by an arbitrary number of whitespace characters, 
     and comments, which are ignored. There are three possible comment formats: 
     /* comment until closing */ , /** API comment until closing */ , and 
-    // comment until the line’s end.
+    // comment until the line's end.
 
-    - ‘xxx’: quotes are used for tokens that appear verbatim (‘terminals’).
+    - 'xxx': quotes are used for tokens that appear verbatim ('terminals').
     - xxx: regular typeface is used for names of language constructs 
-           (‘non-terminals’).
+           ('non-terminals').
     - (): parentheses are used for grouping of language constructs.
     - x | y: indicates that either x or y can appear.
     - x?: indicates that x appears 0 or 1 times.
@@ -112,71 +112,69 @@ class JackTokenizer:
         if self.token_list:
             self._current_token: str = self.token_list[self._current_token_index]
 
+
     def get_cleaned_code_string(self, input_lines):
         """
-        Helper method to process an array of strings to remove all comments
-        and empty lines, returning a single concatenated string of the cleaned code.
-        This step is necessary before tokenization to properly handle multi-line strings.
+        Removes comments from Jack code while preserving string literals.
 
-        Args:
-            input_lines: An array (list) of strings, where each string is a line of code.
+        Handles:
+        - multi-line comments (/* ... */)
+        - single-line comments (// ...)
+        - strings containing // or /*
+        - ignores quotes inside comments
 
         Returns:
-            A single string containing the cleaned code.
+            A single string of cleaned code.
         """
         cleaned_parts = []
         in_multi_line_comment = False
 
         for line in input_lines:
-            line_content = line.strip()
+            i = 0
+            in_string = False
+            cleaned_line = ""
+            length = len(line)
 
-            if not line_content:
-                continue # Skip truly empty lines
+            while i < length:
+                ch = line[i]
+                next_two = line[i:i+2]
 
-            # --- Handle Multi-line Comments that span lines ---
-            if in_multi_line_comment:
-                end_comment_match = re.search(r'\*/', line_content)
-                if end_comment_match:
-                    # Comment ends on this line, process the rest of the line
-                    line_content = line_content[end_comment_match.end():]
-                    in_multi_line_comment = False
-                else:
-                    continue # Still inside a multi-line comment, skip the whole line
+                # --- Handle end of multi-line comment ---
+                if in_multi_line_comment:
+                    if next_two == '*/':
+                        in_multi_line_comment = False
+                        i += 2
+                    else:
+                        i += 1
+                    continue  # skip all characters inside multi-line comments
 
-            # --- Handle Multi-line Comments that start (and potentially end) on this line ---
-            start_comment_match = re.search(r'/\*|\/\*\*', line_content)
-            if start_comment_match:
-                # Check for an inline end comment AFTER the start
-                remaining_line_after_start = line_content[start_comment_match.end():]
-                end_comment_match_inline = re.search(r'\*/', remaining_line_after_start)
+                # --- Handle start of multi-line comment ---
+                if not in_string and next_two == '/*':
+                    in_multi_line_comment = True
+                    i += 2
+                    continue
 
-                if end_comment_match_inline:
-                    # Comment starts and ends on the same line
-                    part_before_comment = line_content[:start_comment_match.start()]
-                    part_after_comment = remaining_line_after_start[end_comment_match_inline.end():]
-                    line_content = part_before_comment + part_after_comment
-                else:
-                    # Multi-line comment begins here and continues to next line
-                    line_content = line_content[:start_comment_match.start()] # Keep only part before comment
-                    in_multi_line_comment = True # Set flag for subsequent lines
+                # --- Handle single-line comment ---
+                if not in_string and next_two == '//':
+                    break  # ignore rest of line
 
-            # --- Handle Single-line Comments (//) ---
-            # IMPORTANT LIMITATION: This simplified approach will remove `//` even if
-            # it's inside a string literal (e.g., "http://example.com").
-            # A full lexer would be required for perfect handling of `//` inside strings.
-            single_line_comment_match = re.search(r'//', line_content)
-            if single_line_comment_match:
-                line_content = line_content[:single_line_comment_match.start()]
+                # --- Handle string toggling ---
+                if ch == '"' and not in_multi_line_comment:
+                    cleaned_line += ch
+                    in_string = not in_string
+                    i += 1
+                    continue
 
-            line_content = line_content.strip() # Re-strip after comment removal
-            if line_content:
-                cleaned_parts.append(line_content)
+                # --- Regular character ---
+                if not in_multi_line_comment:
+                    cleaned_line += ch
+                i += 1
 
-        # Join the cleaned parts with a space. This allows multi-line string literals
-        # to be treated as a single continuous string for the next regex pass.
-        # It also serves as a general separator between tokens that were on different lines.
+            cleaned_line = cleaned_line.strip()
+            if cleaned_line:
+                cleaned_parts.append(cleaned_line)
+
         return " ".join(cleaned_parts)
-
 
     def get_words_from_code_script_filtered(self, input_lines):
         """
