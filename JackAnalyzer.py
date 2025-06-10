@@ -9,8 +9,7 @@ import os
 import sys
 import typing
 from JackTokenizer import JackTokenizer
-import xml.etree.ElementTree as ET
-
+from CompilationEngine import Compilationengine, ET
 
 def analyze_file(
         input_file: typing.TextIO, output_file: typing.TextIO) -> None:
@@ -20,10 +19,9 @@ def analyze_file(
         input_file (typing.TextIO): the file to analyze.
         output_file (typing.TextIO): writes all output to this file.
     """
-    # Your code goes here!
-    # It might be good to start by creating a new JackTokenizer and CompilationEngine:
-    # tokenizer = JackTokenizer(input_file)
-    # engine = CompilationEngine(tokenizer, output_file)
+    tokenizer = JackTokenizer(input_file)
+    engine = Compilationengine(tokenizer, output_file)
+    engine.run()
 
 def create_token_file(
     input_file: typing.TextIO, output_file: typing.TextIO) -> None:
@@ -49,7 +47,7 @@ def create_token_file(
 
 
 def main_only_tokens():
-        # Parses the input path and calls analyze_file on each input file.
+    # Parses the input path and calls analyze_file on each input file.
     # This opens both the input and the output files!
     # Both are closed automatically when the code finishes running.
     # If the output file does not exist, it is created automatically in the
@@ -103,9 +101,16 @@ def main_analyzing() -> None:
             analyze_file(input_file, output_file)
 
 
-if "__main__" == __name__:
+if __name__ == "__main__":
     # commenting out our second main function used
     # for the sake of unit-testing the JackTokenizer module. 
-    main_only_tokens()
-    # main_analyzing()
+    #main_only_tokens()
+    main_analyzing()
+    # root = ET.Element("hello")
+    # root.text = 99
+    # xml_bytes = ET.tostring(root, encoding="utf-8", xml_declaration=False)
+    # xml_string = xml_bytes.decode("utf-8")
+    # open("fucj", 'w').write(xml_string)
+
+
 

@@ -7,11 +7,11 @@ Unported [License](https://creativecommons.org/licenses/by-nc-sa/3.0/).
 """
 import typing
 import re
-KEYWORD = "KEYWORD"
-SYMBOL = "SYMBOL"
-INT_CONST = "INT_CONST"
-STRING_CONST = "STRING_CONST"
-IDENTIFIER = "IDENTIFIER"
+KEYWORD = "KEYWORD".lower()
+SYMBOL = "SYMBOL".lower()
+INT_CONST = "INT_CONST".lower()
+STRING_CONST = "STRING_CONST".lower()
+IDENTIFIER = "IDENTIFIER".lower()
 
 
 class JackTokenizer:
@@ -263,6 +263,7 @@ class JackTokenizer:
         
         if self._current_token.startswith('\"') and self._current_token.endswith('\"'):
             return STRING_CONST
+        return ""
         
     def token_type_translated(self) -> str:
         """returns the token type at the same format of the xml file.
@@ -280,7 +281,7 @@ class JackTokenizer:
         }
         return translation_dict[self.token_type()]
     
-    def current_token_val(self) -> str:
+    def current_token_val(self) -> str | int:
         """Returns the token after its type had been determined,
         used primarily for deleting the double-quotes from stringConstants
         and handling the symbols <,> and &.
@@ -299,6 +300,7 @@ class JackTokenizer:
             return self.string_val()
         if cur_type == IDENTIFIER:
             return self.identifier()
+        return ""
 
     
     def keyword(self) -> str:
@@ -321,9 +323,12 @@ class JackTokenizer:
             symbol: '{' | '}' | '(' | ')' | '[' | ']' | '.' | ',' | ';' | '+' | 
               '-' | '*' | '/' | '&' | '|' | '<' | '>' | '=' | '~' | '^' | '#'
         """
-        if self._current_token == '<': return '&lt'
+        if self._current_token == '<': 
+            pass
+            return '&lt'
         if self._current_token == '>': return '&gt'
-        if self._current_token == '&': return '&amp'
+        if self._current_token == '&': 
+                return '&amp'
         return self._current_token
 
     def identifier(self) -> str:
